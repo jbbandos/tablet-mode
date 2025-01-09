@@ -1,4 +1,4 @@
-## :laptop::repeat_button::pen: ChromeUltrabook scripts :laptop::repeat_button::pen:
+## ChromeUltrabook scripts
 
 Scripts to automate stuff on chromebooks converted to ultrabooks
 If you followed the documentation from [text](https://docs.chrultrabook.com),
