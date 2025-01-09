@@ -10,6 +10,38 @@
 #    sudo gpasswd --add $username input
 # then logout and login again
 
+
+# use flock to ensure a single instance is running
+FNAME=${0##*/}
+LOCKFILE="/tmp/$FNAME.lock"
+
+
+# Remove stale lock files or exit if another instance is running
+if [[ -e "$LOCKFILE" ]]; then
+    PID=$(cat "$LOCKFILE" 2>/dev/null || echo "")
+    if [ -n "$PID" ] && $(kill -0 $PID 2>/dev/null) ; then
+            echo "Another instance of this script is already running (PID: $PID). Exiting."
+            exit 1
+        
+    fi
+    echo "Removing stale lock file: $LOCKFILE"
+    rm -f "$LOCKFILE"
+fi
+
+# Try to acquire the lock
+exec 221>"$LOCKFILE"  # Open the lock file with a specific file descriptor (221)
+if ! flock -n 221; then
+    echo "Could not lock the lockfile $LOCKFILE. Exiting."
+    exit 1
+fi
+
+# Write the script's PID to the lock file (optional but useful for debugging)
+echo $$ > "$LOCKFILE"
+
+# lock is automatically release upon exit
+
+trap "rm -f $LOCKFILE" EXIT  # Ensure the lock file is deleted on exit
+
 # edit the following for your specific system events and devices
 # use "xinput --list" to identify the touchscreen device, keyboard, etc
 touchScreen="Elan Touchscreen"

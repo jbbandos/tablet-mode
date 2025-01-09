@@ -1,5 +1,39 @@
 #!/bin/bash
 #
+# Dependencies:
+# libinput-tools, xinput, iio-sensor-proxy
+
+# use flock to ensure a single instance is running
+LOCKFILE="/tmp/$FNAME.lock"
+
+FNAME=${0##*/}
+# Remove stale lock files or exit if another instance is running
+if [[ -e "$LOCKFILE" ]]; then
+    PID=$(cat "$LOCKFILE" 2>/dev/null || echo "")
+    if [ -n "$PID" ] && $(kill -0 $PID 2>/dev/null) ; then
+            echo "Another instance of this script is already running (PID: $PID). Exiting."
+            exit 1
+        
+    fi
+    echo "Removing stale lock file: $LOCKFILE"
+    rm -f "$LOCKFILE"
+fi
+
+
+# Try to acquire the lock
+exec 212>"$LOCKFILE"  # Open the lock file with a specific file descriptor (212)
+if ! flock -n 212; then
+    echo "Could not lock the lockfile $LOCKFILE. Exiting."
+    exit 1
+fi
+
+# Write the script's PID to the lock file (optional but useful for debugging)
+echo $$ > "$LOCKFILE"
+
+# lock is automatically release upon exit
+
+trap "rm -f $LOCKFILE" EXIT  # Ensure the lock file is deleted on exit
+
 # use "libinput --list-events" to identify the tablet mode switch. 
 # usually it will be something like this:
 # Device:           Tablet Mode Switch
