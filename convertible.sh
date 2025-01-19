@@ -46,8 +46,17 @@ echo $$ > "$LOCKFILE"
 trap mortalWound EXIT  # Ensure the lock file is deleted on exit
 
 # edit the following for your specific system events and devices
-# use "xinput --list" to identify the touchscreen device, keyboard, etc
+# use "libinput list-devices" to identify the touchscreen device, keyboard, etc
+# "xinput --list" does not list switches
 touchScreen="Elan Touchscreen"
+touchPad="Elan Touchpad"
+modeSwitch="Tablet Mode Switch"
+keyBoard="AT Translated Set 2 keyboard"
+vkeyBoard="keyd virtual keyboard"
+# This query should return your lcd screen - verify in your terminal
+sName=$(xrandr |grep "\sconnected"|cut -d" " -f1 | head -1)
+# sName="eDP" # If the query doesn't work for you, just hardcode the lcd screen name
+
 
 # use "xinput list" to obtain id and master id for keyboard and touchpad
 # master ids are only needed if using float/reattach instead of enable/disable
@@ -107,19 +116,19 @@ auto_rotate() {
         case "$ORIENTATION" in
 
                 normal)
-                xrandr -o normal
+                xrandr --output $sName --rotate normal
                 xinput set-prop "$touchScreen" "Coordinate Transformation Matrix" 1 0 0 0 1 0 0 0 1
                 ;;
             left-up)
-                xrandr -o left
+                xrandr --output $sName --rotate left
                 xinput set-prop "$touchScreen" "Coordinate Transformation Matrix" 0 -1 1 1 0 0 0 0 1
                 ;;
             bottom-up)
-                xrandr -o inverted
+                xrandr --output $sName --rotate inverted
                 xinput set-prop "$touchScreen" "Coordinate Transformation Matrix" -1 0 1 0 -1 1 0 0 1
                 ;;
             right-up)
-                xrandr -o right
+                xrandr --output $sName --rotate right
                 xinput set-prop "$touchScreen" "Coordinate Transformation Matrix" 0 1 0 -1 0 1 0 0 1
                 ;;
         esac
