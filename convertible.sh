@@ -46,7 +46,9 @@ sName=$(xrandr |grep "\sconnected"|cut -d" " -f1 | head -1)
 # /dev/input/event5:	Elan Touchscreen
 # /dev/input/event6:	Elan Touchpad
 
-tabModeSwitch=$(libinput list-kernel-devices |grep "$modeSwitch"|cut -d":" -f1)
+#tabModeSwitch=$(libinput list-kernel-devices |grep "$modeSwitch"|cut -d":" -f1)
+# some distributions don't include the "list-kernel-devices" plugin in libinput-tools
+tabModeSwitch=$(libinput list-devices  |grep "$modeSwitch" -A 10 | grep "Kernel" | awk '{print $2}')
 # tabModeSwitch="/dev/input/event4"
 
 # ----------------------------------------------------------------------------------
@@ -116,6 +118,7 @@ auto_rotate() {
 
     ORIENTATION=$(tail /dev/shm/sensor.log | grep 'orientation' | tail -1 | grep -oE '[^ ]+$')
 
+# echo "$ORIENTATION"
         case "$ORIENTATION" in
 
                 normal)
